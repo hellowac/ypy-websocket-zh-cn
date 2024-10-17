@@ -29,7 +29,6 @@ from .yutils import (
 
 
 class YRoom:
-
     clients: list
     ydoc: Y.YDoc
     ystore: BaseYStore | None
@@ -42,16 +41,22 @@ class YRoom:
     _starting: bool
 
     def __init__(
-        self, ready: bool = True, ystore: BaseYStore | None = None, log: Logger | None = None
+        self,
+        ready: bool = True,
+        ystore: BaseYStore | None = None,
+        log: Logger | None = None,
     ):
-        """Initialize the object.
+        """初始化对象。
 
-        The YRoom instance should preferably be used as an async context manager:
+        YRoom 实例应优先作为异步上下文管理器使用：
+
         ```py
         async with room:
             ...
         ```
-        However, a lower-level API can also be used:
+
+        但是，也可以使用更低级的 API：
+
         ```py
         task = asyncio.create_task(room.start())
         await room.started.wait()
@@ -60,14 +65,14 @@ class YRoom:
         ```
 
         Arguments:
-            ready: Whether the internal YDoc is ready to be synchronized right away.
-            ystore: An optional store in which to persist document updates.
-            log: An optional logger.
+            ready: 内部 YDoc 是否准备好立即进行同步。
+            ystore: 可选的存储，用于持久化文档更新。
+            log: 可选的日志记录器。
         """
         self.ydoc = Y.YDoc()
         self.awareness = Awareness(self.ydoc)
-        self._update_send_stream, self._update_receive_stream = create_memory_object_stream(
-            max_buffer_size=65536
+        self._update_send_stream, self._update_receive_stream = (
+            create_memory_object_stream(max_buffer_size=65536)
         )
         self._ready = False
         self.ready = ready
@@ -81,7 +86,7 @@ class YRoom:
 
     @property
     def started(self):
-        """An async event that is set when the YRoom provider has started."""
+        """YRoom 提供程序启动时设置的异步事件。"""
         if self._started is None:
             self._started = Event()
         return self._started
@@ -90,7 +95,7 @@ class YRoom:
     def ready(self) -> bool:
         """
         Returns:
-            True is the internal YDoc is ready to be synchronized.
+            True 表示内部 YDoc 已准备好同步。
         """
         return self._ready
 
@@ -98,16 +103,18 @@ class YRoom:
     def ready(self, value: bool) -> None:
         """
         Arguments:
-            value: True if the internal YDoc is ready to be synchronized, False otherwise."""
+            value: 如果内部 YDoc 已准备好同步，则为 True，否则为 False。"""
         self._ready = value
         if value:
-            self.ydoc.observe_after_transaction(partial(put_updates, self._update_send_stream))
+            self.ydoc.observe_after_transaction(
+                partial(put_updates, self._update_send_stream)
+            )
 
     @property
     def on_message(self) -> Callable[[bytes], Awaitable[bool] | bool] | None:
         """
         Returns:
-            The optional callback to call when a message is received.
+            收到消息时调用的可选回调。
         """
         return self._on_message
 
@@ -115,7 +122,7 @@ class YRoom:
     def on_message(self, value: Callable[[bytes], Awaitable[bool] | bool] | None):
         """
         Arguments:
-            value: An optional callback to call when a message is received. If the callback returns True, the message is skipped.
+            value: 收到消息时调用的可选回调。如果回调返回 True，则跳过该消息。
         """
         self._on_message = value
 
@@ -127,10 +134,11 @@ class YRoom:
             async for update in self._update_receive_stream:
                 if self._task_group.cancel_scope.cancel_called:
                     return
-                # broadcast internal ydoc's update to all clients, that includes changes from the
-                # clients and changes from the backend (out-of-band changes)
+                # 将内部 ydoc 的更新广播到所有客户端，包括来自客户端的更改和来自后端的更改（带外更改）
                 for client in self.clients:
-                    self.log.debug("Sending Y update to client with endpoint: %s", client.path)
+                    self.log.debug(
+                        "Sending Y update to client with endpoint: %s", client.path
+                    )
                     message = create_update_message(update)
                     self._task_group.start_soon(client.send, message)
                 if self.ystore:
@@ -159,10 +167,10 @@ class YRoom:
         return await self._exit_stack.__aexit__(exc_type, exc_value, exc_tb)
 
     async def start(self, *, task_status: TaskStatus[None] = TASK_STATUS_IGNORED):
-        """Start the room.
+        """启动room
 
         Arguments:
-            task_status: The status to set when the task has started.
+            task_status: 任务开始时设置的状态。
         """
         if self._starting:
             return
@@ -179,7 +187,7 @@ class YRoom:
             task_status.started()
 
     def stop(self):
-        """Stop the room."""
+        """停止room."""
         if self._task_group is None:
             raise RuntimeError("YRoom not running")
 
@@ -187,17 +195,17 @@ class YRoom:
         self._task_group = None
 
     async def serve(self, websocket: Websocket):
-        """Serve a client.
+        """服务一个客户端
 
         Arguments:
-            websocket: The WebSocket through which to serve the client.
+            websocket: 用于为客户端提供服务的 WebSocket。
         """
         async with create_task_group() as tg:
             self.clients.append(websocket)
             await sync(self.ydoc, websocket, self.log)
             try:
                 async for message in websocket:
-                    # filter messages (e.g. awareness)
+                    # 过滤消息 (e.g. awareness)
                     skip = False
                     if self.on_message:
                         _skip = self.on_message(message)
@@ -206,15 +214,16 @@ class YRoom:
                         continue
                     message_type = message[0]
                     if message_type == YMessageType.SYNC:
-                        # update our internal state in the background
-                        # changes to the internal state are then forwarded to all clients
-                        # and stored in the YStore (if any)
+                        # 在后台更新我们的内部状态，对内部状态的更改随后将转发给所有客户端并存储在 YStore 中（如果有）
                         tg.start_soon(
-                            process_sync_message, message[1:], self.ydoc, websocket, self.log
+                            process_sync_message,
+                            message[1:],
+                            self.ydoc,
+                            websocket,
+                            self.log,
                         )
                     elif message_type == YMessageType.AWARENESS:
-                        # forward awareness messages from this client to all clients,
-                        # including itself, because it's used to keep the connection alive
+                        # 将感知消息从此客户端转发给所有客户端，包括它自己，因为它用于保持连接处于活动状态
                         self.log.debug(
                             "Received %s message from endpoint: %s",
                             YMessageType.AWARENESS.name,
@@ -231,4 +240,5 @@ class YRoom:
                 self.log.debug("Error serving endpoint: %s", websocket.path, exc_info=e)
 
             # remove this client
+            # 移除这个客户端
             self.clients = [c for c in self.clients if c != websocket]

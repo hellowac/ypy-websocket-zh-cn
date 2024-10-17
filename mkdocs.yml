@@ -1,22 +1,22 @@
-site_name: ypy-websocket
-site_description: Async WebSocket connector for Ypy
-repo_url: https://github.com/y-crdt/ypy-websocket
+site_name: ypy-websocket-zh-cn
+site_description: Ypy的异步 WebSocket 链接器
+repo_url: https://github.com/hellowac/ypy-websocket-zh-cn
 
 theme:
-  name: 'material'
+  name: "material"
   palette:
     - scheme: default
-      primary: 'black'
-      accent: 'black'
+      primary: "blue"
+      accent: "red"
       toggle:
-          icon: material/lightbulb-outline
-          name: Switch to dark mode
+        icon: material/lightbulb-outline
+        name: 切换到夜间模式
     - scheme: slate
-      primary: 'black'
-      accent: 'black'
+      primary: "black"
+      accent: "black"
       toggle:
-          icon: material/lightbulb
-          name: Switch to light mode
+        icon: material/lightbulb
+        name: 切换到白天模式
   features:
     - navigation.instant
     - navigation.top
@@ -27,20 +27,20 @@ theme:
     - content.code.copy
 
 nav:
-- Overview: index.md
-- install.md
-- Usage:
-  - usage/client.md
-  - usage/server.md
-  - usage/WebSocket_API.md
-- Code Reference:
-  - reference/WebSocket_provider.md
-  - reference/WebSocket_server.md
-  - reference/ASGI_server.md
-  - reference/Django_Channels_consumer.md
-  - reference/WebSocket.md
-  - reference/Room.md
-  - reference/Store.md
+  - 概览: index.md
+  - install.md
+  - 用法:
+      - usage/client.md
+      - usage/server.md
+      - usage/WebSocket_API.md
+  - 代码参考:
+      - reference/WebSocket_provider.md
+      - reference/WebSocket_server.md
+      - reference/ASGI_server.md
+      - reference/Django_Channels_consumer.md
+      - reference/WebSocket.md
+      - reference/Room.md
+      - reference/Store.md
 
 markdown_extensions:
   - pymdownx.snippets
@@ -51,7 +51,9 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
 
 plugins:
-- mkdocstrings:
-    default_handler: python
+  - mkdocstrings:
+      default_handler: python

@@ -35,15 +35,14 @@ class _WebsocketShim(Websocket):
 
 
 class YjsConsumer(AsyncWebsocketConsumer):
-    """A working consumer for [Django Channels](https://github.com/django/channels).
+    """一个适用于 [Django Channels](https://github.com/django/channels) 的工作消费者。
 
-    This consumer can be used out of the box simply by adding:
+    该消费者可以开箱即用，只需添加：
     ```py
     path("ws/<str:room>", YjsConsumer.as_asgi())
     ```
-    to your `urls.py` file. In practice, once you
-    [set up Channels](https://channels.readthedocs.io/en/1.x/getting-started.html),
-    you might have something like:
+    到您的 `urls.py` 文件中。在实际操作中，一旦您
+    [设置 Channels](https://channels.readthedocs.io/en/1.x/getting-started.html)，您可能会有如下内容：
     ```py
     # urls.py
     from django.urls import path
@@ -65,19 +64,18 @@ class YjsConsumer(AsyncWebsocketConsumer):
     })
     ```
 
-    Additionally, the consumer can be subclassed to customize its behavior.
+    此外，可以通过子类化该消费者来自定义其行为。
 
-    In particular,
+    特别地，
 
-    - Override `make_room_name` to customize the room name.
-    - Override `make_ydoc` to initialize the YDoc. This is useful to initialize it with data
-      from your database, or to add observers to it).
-    - Override `connect` to do custom validation (like auth) on connect,
-      but be sure to call `await super().connect()` in the end.
-    - Call `group_send_message` to send a message to an entire group/room.
-    - Call `send_message` to send a message to a single client, although this is not recommended.
+    - 重写 `make_room_name` 以自定义房间名称。
+    - 重写 `make_ydoc` 以初始化 YDoc。这对于使用数据库中的数据初始化它或为其添加观察者很有用。
+    - 重写 `connect` 以在连接时进行自定义验证（例如身份验证），但一定要在最后调用 `await super().connect()`。
+    - 调用 `group_send_message` 向整个组/房间发送消息。
+    - 调用 `send_message` 向单个客户端发送消息，尽管不推荐这样做。
 
-    A full example of a custom consumer showcasing all of these options is:
+    展示所有这些选项的自定义消费者的完整示例是：
+
     ```py
     import y_py as Y
     from asgiref.sync import async_to_sync
@@ -88,12 +86,12 @@ class YjsConsumer(AsyncWebsocketConsumer):
 
     class DocConsumer(YjsConsumer):
         def make_room_name(self) -> str:
-            # modify the room name here
+            # 在此修改房间名称
             return self.scope["url_route"]["kwargs"]["room"]
 
         async def make_ydoc(self) -> Y.YDoc:
             doc = Y.YDoc()
-            # fill doc with data from DB here
+            # 在此用数据库中的数据填充 doc
             doc.observe_after_transaction(self.on_update_event)
             return doc
 
@@ -105,7 +103,7 @@ class YjsConsumer(AsyncWebsocketConsumer):
             await super().connect()
 
         def on_update_event(self, event):
-            # process event here
+            # 在此处理事件
             ...
 
         async def doc_update(self, update_wrapper):
@@ -128,23 +126,22 @@ class YjsConsumer(AsyncWebsocketConsumer):
         self._websocket_shim = None
 
     def make_room_name(self) -> str:
-        """Make the room name for a new channel.
+        """为新通道创建房间名称。
 
-        Override to customize the room name when a channel is created.
+        重写此方法以自定义创建通道时的房间名称。
 
         Returns:
-            The room name for a new channel. Defaults to the room name from the URL route.
+            新通道的房间名称。默认值为 URL 路由中的房间名称。
         """
         return self.scope["url_route"]["kwargs"]["room"]
 
     async def make_ydoc(self) -> Y.YDoc:
-        """Make the YDoc for a new channel.
+        """为新通道创建 YDoc。
 
-        Override to customize the YDoc when a channel is created
-        (useful to initialize it with data from your database, or to add observers to it).
+        重写此方法以自定义创建通道时的 YDoc（这对于用数据库中的数据初始化它或为其添加观察者很有用）。
 
         Returns:
-            The YDoc for a new channel. Defaults to a new empty YDoc.
+            新通道的 YDoc。默认值为一个新的空 YDoc。
         """
         return Y.YDoc()
 
@@ -170,26 +167,28 @@ class YjsConsumer(AsyncWebsocketConsumer):
         await self.group_send_message(bytes_data)
         if bytes_data[0] != YMessageType.SYNC:
             return
-        await process_sync_message(bytes_data[1:], self.ydoc, self._websocket_shim, logger)
+        await process_sync_message(
+            bytes_data[1:], self.ydoc, self._websocket_shim, logger
+        )
 
     class WrappedMessage(TypedDict):
-        """A wrapped message to send to the client."""
+        """发送给客户端的包装消息。"""
 
         message: bytes
 
     async def send_message(self, message_wrapper: WrappedMessage) -> None:
-        """Send a message to the client.
+        """发送消息给客户端。
 
         Arguments:
-            message_wrapper: The message to send, wrapped.
+            message_wrapper: 要发送的消息，已包装。
         """
         await self.send(bytes_data=message_wrapper["message"])
 
     async def group_send_message(self, message: bytes) -> None:
-        """Send a message to the group.
+        """向群组发送消息。
 
         Arguments:
-            message: The message to send.
+            message: 要发送的消息。
         """
         await self.channel_layer.group_send(
             self.room_name, {"type": "send_message", "message": message}

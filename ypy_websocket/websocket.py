@@ -9,16 +9,21 @@ else:
 class Websocket(Protocol):
     """WebSocket.
 
-    The Websocket instance can receive messages using an async iterator, until the connection is closed:
+    Websocket 实例可以使用异步迭代器接收消息，直到连接关闭：
+
     ```py
     async for message in websocket:
         ...
     ```
-    Or directly by calling `recv()`:
+
+    或者通过直接调用 `recv()`：
+
     ```py
     message = await websocket.recv()
     ```
-    Sending messages is done with `send()`:
+
+    发送消息使用 `send()`：
+
     ```py
     await websocket.send(message)
     ```
@@ -26,7 +31,7 @@ class Websocket(Protocol):
 
     @property
     def path(self) -> str:
-        """The WebSocket path."""
+        """WebSocket 路径"""
         ...
 
     def __aiter__(self):
@@ -41,17 +46,17 @@ class Websocket(Protocol):
         return message
 
     async def send(self, message: bytes) -> None:
-        """Send a message.
+        """发送消息。
 
         Arguments:
-            message: The message to send.
+            message: 要发送的消息。
         """
         ...
 
     async def recv(self) -> bytes:
-        """Receive a message.
+        """收到一条消息。
 
         Returns:
-            The received message.
+            收到的消息。
         """
         ...

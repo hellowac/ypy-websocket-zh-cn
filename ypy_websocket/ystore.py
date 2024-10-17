@@ -24,7 +24,6 @@ class YDocNotFound(Exception):
 
 
 class BaseYStore(ABC):
-
     metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None
     version = 2
     _started: Event | None = None
@@ -33,17 +32,16 @@ class BaseYStore(ABC):
 
     @abstractmethod
     def __init__(
-        self, path: str, metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None
-    ):
-        ...
+        self,
+        path: str,
+        metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None,
+    ): ...
 
     @abstractmethod
-    async def write(self, data: bytes) -> None:
-        ...
+    async def write(self, data: bytes) -> None: ...
 
     @abstractmethod
-    async def read(self) -> AsyncIterator[tuple[bytes, bytes]]:
-        ...
+    async def read(self) -> AsyncIterator[tuple[bytes, bytes]]: ...
 
     @property
     def started(self) -> Event:
@@ -72,10 +70,10 @@ class BaseYStore(ABC):
         return await self._exit_stack.__aexit__(exc_type, exc_value, exc_tb)
 
     async def start(self, *, task_status: TaskStatus[None] = TASK_STATUS_IGNORED):
-        """Start the store.
+        """启动 store.
 
         Arguments:
-            task_status: The status to set when the task has started.
+            task_status: 任务开始时设置的状态。
         """
         if self._starting:
             return
@@ -90,7 +88,7 @@ class BaseYStore(ABC):
         task_status.started()
 
     def stop(self) -> None:
-        """Stop the store."""
+        """停止 store."""
         if self._task_group is None:
             raise RuntimeError("YStore not running")
 
@@ -100,7 +98,7 @@ class BaseYStore(ABC):
     async def get_metadata(self) -> bytes:
         """
         Returns:
-            The metadata.
+            元数据(metadata).
         """
         if self.metadata_callback is None:
             return b""
@@ -112,26 +110,26 @@ class BaseYStore(ABC):
         return metadata
 
     async def encode_state_as_update(self, ydoc: Y.YDoc) -> None:
-        """Store a YDoc state.
+        """存储1个 YDoc 状态.
 
         Arguments:
-            ydoc: The YDoc from which to store the state.
+            ydoc: 用于存储状态的 YDoc。
         """
         update = Y.encode_state_as_update(ydoc)  # type: ignore
         await self.write(update)
 
     async def apply_updates(self, ydoc: Y.YDoc) -> None:
-        """Apply all stored updates to the YDoc.
+        """将所有存储的更新应用到 YDoc。
 
         Arguments:
-            ydoc: The YDoc on which to apply the updates.
+            ydoc: 要应用更新的 YDoc。
         """
         async for update, *rest in self.read():  # type: ignore
             Y.apply_update(ydoc, update)  # type: ignore
 
 
 class FileYStore(BaseYStore):
-    """A YStore which uses one file per document."""
+    """每个文档使用一个文件的 YStore。"""
 
     path: str
     metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None
@@ -143,12 +141,12 @@ class FileYStore(BaseYStore):
         metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None,
         log: Logger | None = None,
     ) -> None:
-        """Initialize the object.
+        """初始化对象
 
         Arguments:
-            path: The file path used to store the updates.
-            metadata_callback: An optional callback to call to get the metadata.
-            log: An optional logger.
+            path: 用于存储更新的文件路径。
+            metadata_callback: 调用以获取元数据的可选回调。
+            log: 可选记录器(logger).
         """
         self.path = path
         self.metadata_callback = metadata_callback
@@ -156,10 +154,10 @@ class FileYStore(BaseYStore):
         self.lock = Lock()
 
     async def check_version(self) -> int:
-        """Check the version of the store format.
+        """检查商店格式的版本。
 
         Returns:
-            The offset where the data is located in the file.
+            数据在文件中的偏移量。
         """
         if not await anyio.Path(self.path).exists():
             version_mismatch = True
@@ -180,7 +178,9 @@ class FileYStore(BaseYStore):
                     move_file = True
             if move_file:
                 new_path = await get_new_path(self.path)
-                self.log.warning(f"YStore version mismatch, moving {self.path} to {new_path}")
+                self.log.warning(
+                    f"YStore version mismatch, moving {self.path} to {new_path}"
+                )
                 await anyio.Path(self.path).rename(new_path)
         if version_mismatch:
             async with await anyio.open_file(self.path, "wb") as f:
@@ -190,10 +190,10 @@ class FileYStore(BaseYStore):
         return offset
 
     async def read(self) -> AsyncIterator[tuple[bytes, bytes, float]]:  # type: ignore
-        """Async iterator for reading the store content.
+        """用于读取存储内容的异步迭代器。
 
         Returns:
-            A tuple of (update, metadata, timestamp) for each update.
+            每个更新的一个元组， 结构是: (update, metadata, timestamp)
         """
         async with self.lock:
             if not await anyio.Path(self.path).exists():
@@ -216,10 +216,10 @@ class FileYStore(BaseYStore):
             i = (i + 1) % 3
 
     async def write(self, data: bytes) -> None:
-        """Store an update.
+        """存储1个更新
 
         Arguments:
-            data: The update to store.
+            data: 要存储的更新。
         """
         parent = Path(self.path).parent
         async with self.lock:
@@ -237,9 +237,7 @@ class FileYStore(BaseYStore):
 
 
 class TempFileYStore(FileYStore):
-    """A YStore which uses the system's temporary directory.
-    Files are writen under a common directory.
-    To prefix the directory name (e.g. /tmp/my_prefix_b4whmm7y/):
+    """使用系统临时目录的 YStore。文件写入公共目录下。要为目录名称添加前缀（例如 /tmp/my_prefix_b4whmm7y/）：
 
     ```py
     class PrefixTempFileYStore(TempFileYStore):
@@ -256,21 +254,21 @@ class TempFileYStore(FileYStore):
         metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None,
         log: Logger | None = None,
     ):
-        """Initialize the object.
+        """初始化对象
 
         Arguments:
-            path: The file path used to store the updates.
-            metadata_callback: An optional callback to call to get the metadata.
-            log: An optional logger.
+            path: 用于存储更新的文件路径。
+            metadata_callback: 调用以获取元数据的可选回调。
+            log: 可选的记录器(logger).
         """
         full_path = str(Path(self.get_base_dir()) / path)
         super().__init__(full_path, metadata_callback=metadata_callback, log=log)
 
     def get_base_dir(self) -> str:
-        """Get the base directory where the update file is written.
+        """获取写入更新文件的基本目录。
 
         Returns:
-            The base directory path.
+            基目录路径。
         """
         if self.base_dir is None:
             self.make_directory()
@@ -278,15 +276,15 @@ class TempFileYStore(FileYStore):
         return self.base_dir
 
     def make_directory(self):
-        """Create the base directory where the update file is written."""
+        """创建写入更新文件的基本目录."""
         type(self).base_dir = tempfile.mkdtemp(prefix=self.prefix_dir)
 
 
 class SQLiteYStore(BaseYStore):
-    """A YStore which uses an SQLite database.
-    Unlike file-based YStores, the Y updates of all documents are stored in the same database.
+    """使用 SQLite 数据库的 YStore。
+    与基于文件的 YStore 不同，所有文档的 Y 更新都存储在同一个数据库中。
 
-    Subclass to point to your database file:
+    子类指向您的数据库文件：
 
     ```py
     class MySQLiteYStore(SQLiteYStore):
@@ -295,9 +293,8 @@ class SQLiteYStore(BaseYStore):
     """
 
     db_path: str = "ystore.db"
-    # Determines the "time to live" for all documents, i.e. how recent the
-    # latest update of a document must be before purging document history.
-    # Defaults to never purging document history (None).
+    # 确定所有文档的“生存时间”，即在清除文档历史记录之前文档的最新更新必须有多新。
+    # 默认为永不清除文档历史记录（无）。
     document_ttl: int | None = None
     path: str
     lock: Lock
@@ -309,12 +306,12 @@ class SQLiteYStore(BaseYStore):
         metadata_callback: Callable[[], Awaitable[bytes] | bytes] | None = None,
         log: Logger | None = None,
     ) -> None:
-        """Initialize the object.
+        """初始化对象.
 
         Arguments:
-            path: The file path used to store the updates.
-            metadata_callback: An optional callback to call to get the metadata.
-            log: An optional logger.
+            path: 用于存储更新的文件路径。
+            metadata_callback: 调用以获取元数据的可选回调。
+            log: 可选的记录器(logger).
         """
         self.path = path
         self.metadata_callback = metadata_callback
@@ -323,10 +320,10 @@ class SQLiteYStore(BaseYStore):
         self.db_initialized = Event()
 
     async def start(self, *, task_status: TaskStatus[None] = TASK_STATUS_IGNORED):
-        """Start the SQLiteYStore.
+        """启动 SQLiteYStore.
 
         Arguments:
-            task_status: The status to set when the task has started.
+            task_status: 任务开始时设置的状态。
         """
         if self._starting:
             return
@@ -364,7 +361,9 @@ class SQLiteYStore(BaseYStore):
                         create_db = True
         if move_db:
             new_path = await get_new_path(self.db_path)
-            self.log.warning(f"YStore version mismatch, moving {self.db_path} to {new_path}")
+            self.log.warning(
+                f"YStore version mismatch, moving {self.db_path} to {new_path}"
+            )
             await anyio.Path(self.db_path).rename(new_path)
         if create_db:
             async with self.lock:
@@ -380,7 +379,7 @@ class SQLiteYStore(BaseYStore):
         self.db_initialized.set()
 
     async def read(self) -> AsyncIterator[tuple[bytes, bytes, float]]:  # type: ignore
-        """Async iterator for reading the store content.
+        """用于读取存储内容的异步迭代器。
 
         Returns:
             A tuple of (update, metadata, timestamp) for each update.
@@ -403,15 +402,15 @@ class SQLiteYStore(BaseYStore):
             raise YDocNotFound
 
     async def write(self, data: bytes) -> None:
-        """Store an update.
+        """保存更新。
 
         Arguments:
-            data: The update to store.
+            data: 要存储的更新。
         """
         await self.db_initialized.wait()
         async with self.lock:
             async with aiosqlite.connect(self.db_path) as db:
-                # first, determine time elapsed since last update
+                # 首先，确定自上次更新以来经过的时间
                 cursor = await db.execute(
                     "SELECT timestamp FROM yupdates WHERE path = ? ORDER BY timestamp DESC LIMIT 1",
                     (self.path,),
@@ -425,10 +424,12 @@ class SQLiteYStore(BaseYStore):
                     async with db.execute(
                         "SELECT yupdate FROM yupdates WHERE path = ?", (self.path,)
                     ) as cursor:
-                        async for update, in cursor:
+                        async for (update,) in cursor:
                             Y.apply_update(ydoc, update)
                     # delete history
-                    await db.execute("DELETE FROM yupdates WHERE path = ?", (self.path,))
+                    await db.execute(
+                        "DELETE FROM yupdates WHERE path = ?", (self.path,)
+                    )
                     # insert squashed updates
                     squashed_update = Y.encode_state_as_update(ydoc)
                     metadata = await self.get_metadata()

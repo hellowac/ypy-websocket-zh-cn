@@ -60,12 +60,12 @@ class ASGIServer:
         | None = None,
         on_disconnect: Callable[[dict[str, Any]], Awaitable[None] | None] | None = None,
     ):
-        """Initialize the object.
+        """初始化对象.
 
         Arguments:
-            websocket_server: An instance of WebsocketServer.
-            on_connect: An optional callback to call when connecting the WebSocket. If the callback returns True, the WebSocket is not accepted.
-            on_disconnect: An optional callback called when disconnecting the WebSocket.
+            websocket_server: WebsocketServer的一个实例.
+            on_connect: 可选的回调函数，当连接 WebSocket 时调用。如果回调返回 True，则不接受该 WebSocket。
+            on_disconnect: 可选的回调函数，在断开 WebSocket 连接时调用。
         """
         self._websocket_server = websocket_server
         self._on_connect = on_connect

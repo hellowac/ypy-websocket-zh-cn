@@ -34,15 +34,20 @@ class WebsocketProvider:
     _starting: bool
     _task_group: TaskGroup | None
 
-    def __init__(self, ydoc: Y.YDoc, websocket: Websocket, log: Logger | None = None) -> None:
-        """Initialize the object.
+    def __init__(
+        self, ydoc: Y.YDoc, websocket: Websocket, log: Logger | None = None
+    ) -> None:
+        """初始化对象
 
-        The WebsocketProvider instance should preferably be used as an async context manager:
+        WebsocketProvider 实例最好作为异步上下文管理器使用：
+
         ```py
         async with websocket_provider:
             ...
         ```
-        However, a lower-level API can also be used:
+
+        不过，也可以使用更低级的 API：
+
         ```py
         task = asyncio.create_task(websocket_provider.start())
         await websocket_provider.started.wait()
@@ -51,15 +56,15 @@ class WebsocketProvider:
         ```
 
         Arguments:
-            ydoc: The YDoc to connect through the WebSocket.
-            websocket: The WebSocket through which to connect the YDoc.
-            log: An optional logger.
+            ydoc: 通过 WebSocket 连接的 YDoc。
+            websocket: 通过该 WebSocket 连接 YDoc。
+            log: 可选的日志记录器。
         """
         self._ydoc = ydoc
         self._websocket = websocket
         self.log = log or getLogger(__name__)
-        self._update_send_stream, self._update_receive_stream = create_memory_object_stream(
-            max_buffer_size=65536
+        self._update_send_stream, self._update_receive_stream = (
+            create_memory_object_stream(max_buffer_size=65536)
         )
         self._started = None
         self._starting = False
@@ -68,7 +73,7 @@ class WebsocketProvider:
 
     @property
     def started(self) -> Event:
-        """An async event that is set when the WebSocket provider has started."""
+        """WebSocket 提供程序启动时设置的异步事件。"""
         if self._started is None:
             self._started = Event()
         return self._started
@@ -99,7 +104,9 @@ class WebsocketProvider:
         self._task_group.start_soon(self._send)
         async for message in self._websocket:
             if message[0] == YMessageType.SYNC:
-                await process_sync_message(message[1:], self._ydoc, self._websocket, self.log)
+                await process_sync_message(
+                    message[1:], self._ydoc, self._websocket, self.log
+                )
 
     async def _send(self):
         async with self._update_receive_stream:
@@ -111,10 +118,10 @@ class WebsocketProvider:
                     pass
 
     async def start(self, *, task_status: TaskStatus[None] = TASK_STATUS_IGNORED):
-        """Start the WebSocket provider.
+        """启动 WebSocket 提供程序。
 
         Arguments:
-            task_status: The status to set when the task has started.
+            task_status: 任务开始时设置的状态。
         """
         if self._starting:
             return
@@ -131,7 +138,7 @@ class WebsocketProvider:
             task_status.started()
 
     def stop(self):
-        """Stop the WebSocket provider."""
+        """停止 WebSocket 提供程序。"""
         if self._task_group is None:
             raise RuntimeError("WebsocketProvider not running")
 
