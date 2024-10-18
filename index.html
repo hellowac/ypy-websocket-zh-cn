@@ -593,12 +593,12 @@
 <p><a href="https://github.com/y-crdt/ypy-websocket/actions"><img alt="构建状态" src="https://github.com/y-crdt/ypy-websocket/workflows/CI/badge.svg" /></a>
 <a href="https://github.com/psf/black"><img alt="代码风格: black" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
 <hr />
-<p><strong>文档</strong>: <a href="https://davidbrochart.github.io/ypy-websocket" target="_blank">https://davidbrochart.github.io/ypy-websocket</a></p>
+<p><strong>文档</strong>: <a href="https://hellowac.github.io/ypy-websocket-zh-cn" target="_blank">https://hellowac.github.io/ypy-websocket-zh-cn</a></p>
 <p><strong>源代码</strong>: <a href="https://github.com/y-crdt/ypy-websocket" target="_blank">https://github.com/y-crdt/ypy-websocket</a></p>
 <hr />
 <p>Ypy-websocket 是一个用于构建 WebSocket 服务器和客户端的 Python 库，能够连接并同步共享文档。它可用于创建协作式 Web 应用程序。</p>
 <p>以下图表展示了典型的架构。目标是将文档共享给多个客户端。</p>
-<p>每个客户端都有一个 <a href="https://ypy.readthedocs.io/en/latest/autoapi/y_py/index.html#y_py.YDoc">YDoc</a> 实例，代表其对文档的视图。共享文档还在服务器端的 <a href="reference/Room/">room</a> 中存在。从概念上讲，房间可以看作是客户端协作编辑文档的地方。客户端连接的 WebSocket 通过端点路径指向相应的房间。在下面的示例中，客户端 A 和 B 连接到路径为 <code>room-1</code> 的 WebSocket，因此这两个客户端都位于名为 <code>room-1</code> 的房间中。所有 <code>YDoc</code> 的同步逻辑由 <a href="reference/WebSocket_provider/">WebsocketProvider</a> 处理。</p>
+<p>每个客户端都有一个 <a href="https://hellowac.github.io/ypy-zh-cn/autoapi/y_py/index.html#y_py.YDoc">YDoc</a> 实例，代表其对文档的视图。共享文档还在服务器端的 <a href="reference/Room/">room</a> 中存在。从概念上讲，房间可以看作是客户端协作编辑文档的地方。客户端连接的 WebSocket 通过端点路径指向相应的房间。在下面的示例中，客户端 A 和 B 连接到路径为 <code>room-1</code> 的 WebSocket，因此这两个客户端都位于名为 <code>room-1</code> 的房间中。所有 <code>YDoc</code> 的同步逻辑由 <a href="reference/WebSocket_provider/">WebsocketProvider</a> 处理。</p>
 <p>对共享文档的每次更新都可以使用 <a href="reference/Store/">store</a> 持久化到磁盘，存储可以是文件或数据库。
 <pre class="mermaid"><code>flowchart TD
     classDef room1 fill:#f96
