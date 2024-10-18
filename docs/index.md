@@ -9,7 +9,7 @@
     
     ---
     
-    **文档**: <a href="https://davidbrochart.github.io/ypy-websocket" target="_blank">https://davidbrochart.github.io/ypy-websocket</a>
+    **文档**: <a href="https://hellowac.github.io/ypy-websocket-zh-cn" target="_blank">https://hellowac.github.io/ypy-websocket-zh-cn</a>
     
     **源代码**: <a href="https://github.com/y-crdt/ypy-websocket" target="_blank">https://github.com/y-crdt/ypy-websocket</a>
     
@@ -19,7 +19,7 @@
     
     以下图表展示了典型的架构。目标是将文档共享给多个客户端。
     
-    每个客户端都有一个 [YDoc](https://ypy.readthedocs.io/en/latest/autoapi/y_py/index.html#y_py.YDoc) 实例，代表其对文档的视图。共享文档还在服务器端的 [room](./reference/Room.md) 中存在。从概念上讲，房间可以看作是客户端协作编辑文档的地方。客户端连接的 WebSocket 通过端点路径指向相应的房间。在下面的示例中，客户端 A 和 B 连接到路径为 `room-1` 的 WebSocket，因此这两个客户端都位于名为 `room-1` 的房间中。所有 `YDoc` 的同步逻辑由 [WebsocketProvider](./reference/WebSocket_provider.md) 处理。
+    每个客户端都有一个 [YDoc](https://hellowac.github.io/ypy-zh-cn/autoapi/y_py/index.html#y_py.YDoc) 实例，代表其对文档的视图。共享文档还在服务器端的 [room](./reference/Room.md) 中存在。从概念上讲，房间可以看作是客户端协作编辑文档的地方。客户端连接的 WebSocket 通过端点路径指向相应的房间。在下面的示例中，客户端 A 和 B 连接到路径为 `room-1` 的 WebSocket，因此这两个客户端都位于名为 `room-1` 的房间中。所有 `YDoc` 的同步逻辑由 [WebsocketProvider](./reference/WebSocket_provider.md) 处理。
     
     对共享文档的每次更新都可以使用 [store](./reference/Store.md) 持久化到磁盘，存储可以是文件或数据库。
     ```mermaid
