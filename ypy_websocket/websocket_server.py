@@ -198,12 +198,20 @@ class WebsocketServer:
         if self._task_group is not None:
             raise RuntimeError("WebsocketServer already running")
 
-        # 创建任务组并等待
-        async with create_task_group() as self._task_group:
-            self._task_group.start_soon(Event().wait)
+        async with AsyncExitStack() as exit_stack:
+            tg = create_task_group()
+            self._task_group = await exit_stack.enter_async_context(tg)
+            self._exit_stack = exit_stack.pop_all()
             self.started.set()
             self._starting = False
             task_status.started()
+
+        # 创建任务组并等待
+        # async with create_task_group() as self._task_group:
+        #     self._task_group.start_soon(Event().wait)
+        #     self.started.set()
+        #     self._starting = False
+        #     task_status.started()
 
     def stop(self) -> None:
         """停止 WebSocket 服务."""
